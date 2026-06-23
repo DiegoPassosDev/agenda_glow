@@ -19,7 +19,7 @@ Sistema web responsivo para gerenciamento de agendamentos de serviços estético
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/agenda-glow.git
+git clone https://github.com/DiegoPassosDev/agenda_glow
 cd agenda-glow
 ```
 
