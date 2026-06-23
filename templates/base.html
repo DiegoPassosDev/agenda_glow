@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Agenda Glow{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'styles/base.css' %}" />
+    <link rel="stylesheet" href="{% static 'styles/status-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/mobile.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Merriweather:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+
+  <body class="{% if user.is_authenticated %}authenticated{% endif %}">
+
+    {% if messages %}
+    <div id="toast-container">
+      {% for message in messages %}
+      <div class="toast toast-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Logo / Marca -->
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">✨</div>
+        <span class="sidebar-brand-name">Agenda Glow</span>
+      </div>
+
+      <!-- Perfil do Usuário -->
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">
+          {{ user.get_full_name|first|upper }}
+        </div>
+        <div class="sidebar-user-info">
+          <p class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</p>
+          <p class="sidebar-user-role">{{ user.email }}</p>
+        </div>
+      </div>
+
+      <!-- Navegação -->
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li class="sidebar-menu-item">
+            <a href="{% url 'dashboard' %}"
+               class="sidebar-menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+              <span class="sidebar-menu-icon">
+                {% include 'static/img/home.svg' %}
+              </span>
+              <span class="sidebar-menu-label">Dashboard</span>
+            </a>
+          </li>
+
+          <li class="sidebar-menu-item">
+            <a href="{% url 'clientes_list' %}"
+               class="sidebar-menu-link {% if 'cliente' in request.resolver_match.url_name %}active{% endif %}">
+              <span class="sidebar-menu-icon">
+                {% include 'static/img/clientes.svg' %}
+              </span>
+              <span class="sidebar-menu-label">Clientes</span>
+            </a>
+          </li>
+
+          <li class="sidebar-menu-item">
+            <a href="{% url 'criar_agendamento' %}"
+               class="sidebar-menu-link {% if 'agendamento' in request.resolver_match.url_name %}active{% endif %}">
+              <span class="sidebar-menu-icon">
+                {% include 'static/img/agenda.svg' %}
+              </span>
+              <span class="sidebar-menu-label">Agendamentos</span>
+            </a>
+          </li>
+
+          <li class="sidebar-menu-item">
+            <a href="{% url 'servicos_list' %}"
+               class="sidebar-menu-link {% if 'servico' in request.resolver_match.url_name %}active{% endif %}">
+              <span class="sidebar-menu-icon">
+                {% include 'static/img/servico.svg' %}
+              </span>
+              <span class="sidebar-menu-label">Serviços</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Divisor -->
+        <div class="sidebar-divider"></div>
+
+        <ul class="sidebar-menu">
+          <li class="sidebar-menu-item">
+            <a href="{% url 'logout' %}" class="sidebar-menu-link sidebar-menu-link--logout">
+              <span class="sidebar-menu-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </span>
+              <span class="sidebar-menu-label">Sair</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Overlay para mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    {% endif %}
+
+    <!-- ===== WRAPPER PRINCIPAL ===== -->
+    <div class="app-wrapper {% if user.is_authenticated %}with-sidebar{% endif %}">
+
+      {% if user.is_authenticated %}
+      <!-- ===== HEADER SUPERIOR ===== -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- Botão hambúrguer (mobile) -->
+          <button class="topbar-hamburger" id="hamburgerBtn" aria-label="Abrir menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="3" y1="6"  x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+
+          <!-- Saudação -->
+          <div class="topbar-greeting">
+            <h1 class="topbar-title">
+              Bem-vindo, {{ user.get_full_name|default:user.username }}!
+            </h1>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Busca -->
+          <div class="topbar-search">
+            <svg class="topbar-search-icon" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="topbar-search-input" placeholder="Buscar..." />
+          </div>
+
+          <!-- Notificações -->
+          <button class="topbar-icon-btn" id="notificationBtn" aria-label="Notificações">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            {% if notificacoes %}
+              <span class="topbar-badge">{{ notificacoes|length }}</span>
+            {% endif %}
+          </button>          
+        </div>
+
+        <!-- Dropdown de Notificações -->
+        <div class="notifications-dropdown" id="notificationsDropdown" style="display:none">
+          <h3>Notificações</h3>
+          <div class="notifications-list">
+            {% if notificacoes %}
+              {% for notificacao in notificacoes %}
+                <div class="notification-item" data-id="{{ notificacao.id }}">
+                  <p class="notification-message">{{ notificacao.mensagem }}</p>
+                  <span class="notification-time">{{ notificacao.criada_em|timesince }} atrás</span>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="no-notifications">Nenhuma notificação</p>
+            {% endif %}
+          </div>
+        </div>
+      </header>
+      {% endif %}
+
+      <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+
+    </div><!-- /app-wrapper -->
+
+    <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/status-checker.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+      // Sidebar mobile toggle
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('open');
+          overlay.classList.toggle('active');
+        });
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+        });
+      }
+
+      // ── Animação deslizante entre itens do menu ──
+      const menuLinks = document.querySelectorAll('.sidebar-menu-link:not(.sidebar-menu-link--logout)');
+
+      menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          // Não anima se já é o item ativo
+          if (this.classList.contains('active')) return;
+
+          const currentActive = document.querySelector('.sidebar-menu-link.active');
+
+          if (currentActive) {
+            // Determina direção: o novo item está abaixo ou acima do atual?
+            const currentRect = currentActive.getBoundingClientRect();
+            const newRect     = this.getBoundingClientRect();
+            const goingDown   = newRect.top > currentRect.top;
+
+            // Anima o item atual saindo na direção oposta
+            currentActive.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease';
+            currentActive.style.transform  = goingDown ? 'translateX(-12px)' : 'translateX(-12px)';
+            currentActive.style.opacity    = '0.5';
+
+            // Prepara o novo item vindo da direção correta
+            this.style.transition = 'none';
+            this.style.transform  = goingDown ? 'translateX(-16px)' : 'translateX(-16px)';
+            this.style.opacity    = '0.7';
+
+            // Força reflow antes de animar
+            this.getBoundingClientRect();
+
+            // Desliza o novo item para a posição final
+            requestAnimationFrame(() => {
+              this.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+              this.style.transform  = 'translateX(0)';
+              this.style.opacity    = '1';
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

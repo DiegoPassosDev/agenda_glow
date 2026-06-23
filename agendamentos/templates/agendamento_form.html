@@ -1,0 +1,127 @@
+{% extends 'base.html' %} 
+
+{% load static %} 
+
+{% block title %}
+  {{ titulo }} - Agenda Estética
+{% endblock %} 
+
+
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">{{ titulo }}</h2>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-small">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Voltar
+    </a>
+    </div>
+
+    <form method="post" class="appointment-form">
+      {% csrf_token %} 
+      
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.cliente.id_for_label }}">
+            Cliente *
+          </label>
+          {{ form.cliente }} 
+          
+          <small class="form-help">
+            <a href="{% url 'cliente_create' %}" target="_blank"
+              >Cadastrar Novo cliente</a
+            >
+          </small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.servico.id_for_label }}">
+            Serviço *
+          </label>
+          {{ form.servico }} 
+          {% if form.servico.errors %}
+            <div class="form-error">{{ form.servico.errors }}</div>
+          {% endif %}
+          <small class="form-help">
+            <a href="{% url 'servico_create' %}" target="_blank"
+              >Cadastrar Novo Serviço</a
+            >
+          </small>
+        </div>
+      </div>
+
+      <div class="form-row form-row-split">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.data.id_for_label }}">
+            Data *
+          </label>
+          {{ form.data }} {% if form.data.errors %}
+          <div class="form-error">{{ form.data.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="{{ form.hora.id_for_label }}">
+            Horário *
+          </label>
+          {{ form.hora }} {% if form.hora.errors %}
+          <div class="form-error">{{ form.hora.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.status.id_for_label }}">
+            Status
+          </label>
+          {{ form.status }} {% if form.status.errors %}
+          <div class="form-error">{{ form.status.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="{{ form.observacoes.id_for_label }}">
+            Observações
+          </label>
+          {{ form.observacoes }} {% if form.observacoes.errors %}
+          <div class="form-error">{{ form.observacoes.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {% if agendamento %}Atualizar{% else %}Criar{% endif %} Agendamento
+        </button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  {% if erro_modal %}
+    <div class="modal-overlay" id="erroModal">
+      <div class="modal-box">
+        <h3>⚠️ Conflito de Horário</h3>
+        <p>{{ erro_modal|linebreaks }}</p>
+        <button class="btn btn-primary" onclick="fecharModal()">OK</button>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/agendamento.js' %}"></script>
+{% endblock %}

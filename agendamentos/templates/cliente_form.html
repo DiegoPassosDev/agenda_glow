@@ -1,0 +1,96 @@
+{% extends 'base.html' %} 
+
+{% load static %} 
+
+{% block title %} 
+  {{ titulo }} - Agenda Estética 
+{% endblock %} 
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/forms.css' %}" />
+{% endblock %} 
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">{{ titulo }}</h2>
+    <a href="{% url 'clientes_list' %}" class="btn btn-secondary btn-small">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      Voltar
+    </a>
+  </div>
+
+  <form method="post" class="cliente-form">
+    {% csrf_token %} {% if form.non_field_errors %}
+    <div class="alert alert-error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.nome.id_for_label }}">
+          Nome Completo *
+        </label>
+        {{ form.nome }} {% if form.nome.errors %}
+        <div class="form-error">{{ form.nome.errors }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-row form-row-split">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.telefone.id_for_label }}">
+          Telefone *
+        </label>
+        {{ form.telefone }} {% if form.telefone.errors %}
+        <div class="form-error">{{ form.telefone.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.email.id_for_label }}">
+          E-mail
+        </label>
+        {{ form.email }} {% if form.email.errors %}
+        <div class="form-error">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.observacoes.id_for_label }}">
+          Observações
+        </label>
+        {{ form.observacoes }} {% if form.observacoes.errors %}
+        <div class="form-error">{{ form.observacoes.errors }}</div>
+        {% endif %}
+        <small class="form-help">
+          Informações adicionais sobre o cliente (preferências, restrições,
+          etc.)
+        </small>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">
+        {% if cliente %}Atualizar{% else %}Cadastrar{% endif %} Cliente
+      </button>
+      <a href="{% url 'clientes_list' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/forms.js' %}"></script>
+{% endblock %}

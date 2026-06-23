@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — Agenda Glow{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+  <!-- ===== CABEÇALHO DA PÁGINA ===== -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Dashboard</h2>
+      <p class="page-subtitle">Visão geral dos agendamentos do dia</p>
+    </div>
+    <a href="{% url 'criar_agendamento' %}" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo Agendamento
+    </a>
+  </div>
+
+  <!-- ===== CARDS DE ESTATÍSTICAS ===== -->
+  <div class="stats-grid">
+
+    <div class="stat-card stat-card--blue">
+      <div class="stat-card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8"  y1="2" x2="8"  y2="6"/>
+          <line x1="3"  y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="stat-card-body">
+        <span class="stat-card-value">{{ total_agendamentos }}</span>
+        <span class="stat-card-label">Agendamentos Hoje</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--red">
+      <div class="stat-card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9"  y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="stat-card-body">
+        <span class="stat-card-value">{{ total_cancelados }}</span>
+        <span class="stat-card-label">Cancelados</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--orange">
+      <div class="stat-card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="stat-card-body">
+        <span class="stat-card-value">{{ total_confirmados }}</span>
+        <span class="stat-card-label">Confirmados</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--purple">
+      <div class="stat-card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="stat-card-body">
+        <span class="stat-card-value">{{ total_concluidos }}</span>
+        <span class="stat-card-label">Concluídos</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== SELETOR DE DATA + LISTA ===== -->
+  <div class="dashboard-main">
+
+    <!-- Coluna principal: agenda -->
+    <div class="agenda-section">
+
+      <!-- Cabeçalho com navegação de data -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3 class="section-card-title">Agenda do Dia</h3>
+
+          <div class="date-nav">
+            <a href="?data={{ data_anterior|date:'Y-m-d' }}" class="date-nav-btn" title="Dia anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </a>
+
+            <div class="date-display">
+              <span class="date-display-text">{{ data_selecionada|date:"d/m/Y" }}</span>
+              <span class="date-display-weekday">{{ data_selecionada|date:"l" }}</span>
+              {% if data_selecionada == hoje %}
+                <span class="today-badge">Hoje</span>
+              {% endif %}
+            </div>
+
+            <a href="?data={{ data_proxima|date:'Y-m-d' }}" class="date-nav-btn" title="Próximo dia">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Lista de agendamentos -->
+        <div class="agenda-list">
+          {% if agendamentos %}
+            {% for agendamento in agendamentos %}
+            <div
+              class="appointment-card status-{{ agendamento.status }}
+                     {% if agendamento.esteticista.user == user %}my-appointment{% endif %}
+                     {% if agendamento.esta_proximo %}urgent{% endif %}"
+              {% if agendamento.esteticista.user == user %}
+                data-url="{% url 'editar_agendamento' agendamento.pk %}"
+              {% endif %}
+            >
+              <!-- Faixa lateral colorida + conteúdo -->
+              <div class="appt-body">
+                <div class="appt-time-col">
+                  <span class="appt-time">{{ agendamento.data_hora|date:"H:i" }}</span>
+                  <span class="appt-time-clock">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </span>
+                  <span class="appt-time-end">{{ agendamento.hora_fim|date:"H:i" }}</span>
+                </div>
+
+                <div class="appt-info">
+                  <div class="appt-top">
+                    <span class="appt-client">{{ agendamento.cliente.nome }}</span>
+                    <span class="status-badge status-{{ agendamento.status }}">
+                      {{ agendamento.get_status_display }}
+                    </span>
+                  </div>
+                  <div class="appt-service">
+                    {{ agendamento.servico.nome }}
+                    <span class="appt-duration">({{ agendamento.duracao_minutos }} min)</span>
+                  </div>
+                  <div class="appt-professional">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    {{ agendamento.esteticista }}
+                  </div>
+                </div>
+              </div>
+
+              {% if agendamento.esteticista.user == user %}
+                {% if agendamento.status == "agendado" or agendamento.status == "confirmado" %}
+                <div class="appt-actions">
+                  <a href="{% url 'cancelar_agendamento' agendamento.pk %}"
+                     class="btn btn-danger btn-small">
+                    Cancelar
+                  </a>
+                </div>
+                {% endif %}
+              {% endif %}
+            </div>
+            {% endfor %}
+
+          {% else %}
+            <div class="no-appointments">
+              <div class="no-appointments-icon">🗓️</div>
+              <p class="no-appointments-text">Nenhum horário reservado para este dia.</p>
+              <a href="{% url 'criar_agendamento' %}" class="btn btn-primary">
+                Criar Agendamento
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Coluna lateral: ações rápidas + horários -->
+    <div class="dashboard-sidebar-col">
+
+      <!-- Ações rápidas -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3 class="section-card-title">Ações Rápidas</h3>
+        </div>
+        <div class="quick-actions">
+          <a href="{% url 'criar_agendamento' %}" class="quick-action-item">
+            <div class="quick-action-icon quick-action-icon--blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8"  y1="12" x2="16" y2="12"/>
+              </svg>
+            </div>
+            <span class="quick-action-label">Novo Agendamento</span>
+            <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+
+          <a href="{% url 'cliente_create' %}" class="quick-action-item">
+            <div class="quick-action-icon quick-action-icon--green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+              </svg>
+            </div>
+            <span class="quick-action-label">Novo Cliente</span>
+            <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+
+          <a href="{% url 'servico_create' %}" class="quick-action-item">
+            <div class="quick-action-icon quick-action-icon--purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <span class="quick-action-label">Novo Serviço</span>
+            <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+
+          <a href="{% url 'clientes_list' %}" class="quick-action-item">
+            <div class="quick-action-icon quick-action-icon--orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <span class="quick-action-label">Ver Clientes</span>
+            <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Horários disponíveis -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3 class="section-card-title">Horários Disponíveis</h3>
+        </div>
+        <div class="horarios-grid">
+          {% for slot in horarios_disponiveis %}
+            <span class="horario-slot {% if slot.disponivel %}horario-slot--livre{% else %}horario-slot--ocupado{% endif %}">
+              {{ slot.horario }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}
